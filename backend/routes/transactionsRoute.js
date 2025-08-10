@@ -3,10 +3,7 @@ import Transaction from '../models/Transaction';
 
 const router = Router();
 
-// --- CREATE TRANSACTIONS --- //
-router.post('/', async (req, res) => {
-  const { description, amount } = req.body;
-
+const validateAmount = (amount) => {
   if (amount === undefined || amount === null) {
     return res.status(400).json({ error: 'Amount is required.'});
   }
@@ -25,6 +22,13 @@ router.post('/', async (req, res) => {
   if (!Number.isInteger(amount * 100)) {
     return res.status(400).json({ error: 'Amount must have at most 2 decimal places.' });
   }
+
+  return null;
+}
+
+// --- CREATE TRANSACTIONS --- //
+router.post('/', async (req, res) => {
+  const { description, amount } = req.body;
 
   try {
     const newTransaction = await Transaction.create({
