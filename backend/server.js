@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import sequelize from './config/database';
+import sequelize from './config/database.js';
 
 // TRANSACTIONS
 import transactionsRoute from './routes/transactionsRoute.js';
