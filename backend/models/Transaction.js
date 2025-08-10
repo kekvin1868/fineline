@@ -14,6 +14,10 @@ const Transaction = sequelize.define('Transaction', {
   amount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
+    validate: {
+      min: -100000,
+      max: 100000
+    }
   },
 }, {
   timestamps: true,
