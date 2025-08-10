@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import sequelize from './config/database';
+import Transaction from './models/Transaction';
 
 // Instance of Express.js
 const app = express();
@@ -15,6 +16,42 @@ app.use(cors());
 // A simple test route to make sure the server is working.
 app.get('/', (req, res) => {
   res.send('Money Tracker Backend is running!');
+});
+
+// --- API Routes --- //
+app.post('/api/transactions', async (req, res) => {
+  const { description, amount } = req.body;
+
+  if (amount === undefined || amount === null) {
+    return res.status(400).json({ error: 'Amount is required.'});
+  }
+  // Validate amount type and value
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    return res.status(400).json({ error: 'Amount must be a valid number.' });
+  }
+  // Check reasonable bounds (e.g., not negative, not extremely large, max 2 decimal places)
+  if (amount < 0) {
+    return res.status(400).json({ error: 'Amount cannot be negative.' });
+  }
+  if (amount > 1000000) {
+    return res.status(400).json({ error: 'Amount is too large.' });
+  }
+  // Check for max 2 decimal places
+  if (!Number.isInteger(amount * 100)) {
+    return res.status(400).json({ error: 'Amount must have at most 2 decimal places.' });
+  }
+
+  try {
+    const newTransaction = await Transaction.create({
+      description,
+      amount
+    });
+
+    res.status(201).json(newTransaction);
+  } catch(err) {
+    console.error("Error adding transaction: ", err.stack);
+    res.status(500).json({ error: 'Internal server error.'});
+  }
 });
 
 // Call the database functions and start the server.
