@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import sequelize from './config/database';
+import Transaction from './models/Transaction';
 
 // Instance of Express.js
 const app = express();
