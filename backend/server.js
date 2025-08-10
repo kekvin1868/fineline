@@ -17,6 +17,27 @@ app.get('/', (req, res) => {
   res.send('Money Tracker Backend is running!');
 });
 
+// --- API Routes --- //
+app.post('/api/transactions', async (req, res) => {
+  const { description, amount } = req.body;
+
+  if (!amount) {
+    return res.status(400).json({ error: 'Amount is required.'});
+  }
+
+  try {
+    const newTransaction = await Transaction.create({
+      description,
+      amount
+    });
+
+    res.status(201).json(newTransaction);
+  } catch(err) {
+    console.error("Error adding transaction: ", err.stack);
+    res.status(500).json({ error: 'Internal server error.'});
+  }
+});
+
 // Call the database functions and start the server.
 async function startServer() {
   try {
