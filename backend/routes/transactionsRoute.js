@@ -95,22 +95,24 @@ router.delete('/:id', async (req, res) => {
 
 const validateAmount = (amount) => {
   if (amount === undefined || amount === null) {
-    return res.status(400).json({ error: 'Amount is required.'});
+    return { error: 'Amount is required.'};
   }
   // Validate amount type and value
   if (typeof amount !== 'number' || !Number.isFinite(amount)) {
-    return res.status(400).json({ error: 'Amount must be a valid number.' });
+    return { error: 'Amount must be a valid number.' };
   }
   // Reasonable bounds (e.g., not negative, not extremely large, max 2 decimal places)
   if (amount < 0) {
-    return res.status(400).json({ error: 'Amount cannot be negative.' });
+    return { error: 'Amount cannot be negative.' };
   }
+  
+  // Max amount
   if (amount > 1000000) {
-    return res.status(400).json({ error: 'Amount is too large.' });
+    return { error: 'Amount is too large.' };
   }
   // Check for max 2 decimal places
   if (!Number.isInteger(amount * 100)) {
-    return res.status(400).json({ error: 'Amount must have at most 2 decimal places.' });
+    return { error: 'Amount must have at most 2 decimal places.' };
   }
 
   return null;
