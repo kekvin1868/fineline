@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
+import User from './User.js';
 
 const Transaction = sequelize.define('Transaction', {
   id: {
@@ -24,5 +25,8 @@ const Transaction = sequelize.define('Transaction', {
   createdAt: 'created_at',
   updatedAt: false,
 });
+
+User.hasMany(Transaction);
+Transaction.belongsTo(User);
 
 export default Transaction;
