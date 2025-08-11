@@ -35,14 +35,16 @@ async function startServer() {
     await User.sync(
       process.env.NODE_ENV === 'development' 
         ? { force: true } 
-        : { alter: true });
+        : { alter: true }
+      );
+
     await Transaction.sync();
     console.log('Tables created successfully.');
 
     await User.create({
       id: '9046c827-023a-43c1-b0e2-628676d54d9c',
       username: 'default_user',
-    })
+    });
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
