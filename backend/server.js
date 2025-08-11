@@ -42,7 +42,7 @@ async function startServer() {
     console.log('Tables created successfully.');
 
     await User.findOrCreate({
-      id: '9046c827-023a-43c1-b0e2-628676d54d9c',
+      where: { id: '9046c827-023a-43c1-b0e2-628676d54d9c' },
       username: 'default_user',
     });
 
