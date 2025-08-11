@@ -41,7 +41,7 @@ async function startServer() {
     await Transaction.sync();
     console.log('Tables created successfully.');
 
-    await User.create({
+    await User.findOrCreate({
       id: '9046c827-023a-43c1-b0e2-628676d54d9c',
       username: 'default_user',
     });
