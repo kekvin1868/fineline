@@ -5,6 +5,9 @@ import sequelize from './config/database.js';
 // TRANSACTIONS
 import transactionsRoute from './routes/transactionsRoute.js';
 
+import User from './models/User.js';
+import Transaction from './models/Transaction.js';
+
 // Instance of Express.js
 const app = express();
 
@@ -29,8 +32,14 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Database connection established!');
 
-    await sequelize.sync();
-    console.log('Tables created successfully!');
+    await User.sync({ force: true });
+    await Transaction.sync();
+    console.log('Tables created successfully.');
+
+    await User.create({
+      id: '9046c827-023a-43c1-b0e2-628676d54d9c',
+      username: 'default_user',
+    })
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
