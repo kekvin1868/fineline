@@ -3,6 +3,8 @@ import Transaction from '../models/Transaction.js';
 
 const router = Router();
 
+const CURRENT_USER_ID = '9046c827-023a-43c1-b0e2-628676d54d9c';
+
 const validateAmount = (amount) => {
   if (amount === undefined || amount === null) {
     return res.status(400).json({ error: 'Amount is required.'});
@@ -29,6 +31,11 @@ const validateAmount = (amount) => {
 // --- CREATE TRANSACTIONS --- //
 router.post('/', async (req, res) => {
   const { description, amount } = req.body;
+
+  const validationError = validateAmount(amount);
+  if (validationError) {
+    return res.status(400).json(validationError);
+  }
 
   try {
     const newTransaction = await Transaction.create({
@@ -62,27 +69,15 @@ router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { description, amount } = req.body;
 
-  if (amount === undefined || amount === null) {
-    return res.status(400).json({ error: 'Amount is required.'});
-  }
-  // Validate amount type and value
-  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
-    return res.status(400).json({ error: 'Amount must be a valid number.' });
-  }
-  // Reasonable bounds (e.g., not negative, not extremely large, max 2 decimal places)
-  if (amount < 0) {
-    return res.status(400).json({ error: 'Amount cannot be negative.' });
-  }
-  if (amount > 1000000) {
-    return res.status(400).json({ error: 'Amount is too large.' });
-  }
-  // Check for max 2 decimal places
-  if (!Number.isInteger(amount * 100)) {
-    return res.status(400).json({ error: 'Amount must have at most 2 decimal places.' });
+  const validationError = validateAmount(amount);
+  if (validationError) {
+    return res.status(400).json(validationError);
   }
 
   try {
-    const transaction = await Transaction.findByPk(id);
+    const transaction = await Transaction.findOne({
+      where: { id, userId: CURRENT_USER_ID },
+    });
 
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found.' });
