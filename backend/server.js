@@ -32,7 +32,10 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Database connection established!');
 
-    await User.sync({ force: true });
+    await User.sync(
+      process.env.NODE_ENV === 'development' 
+        ? { force: true } 
+        : { alter: true });
     await Transaction.sync();
     console.log('Tables created successfully.');
 
