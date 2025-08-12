@@ -3,8 +3,9 @@ import cors from 'cors';
 import sequelize from './config/database.js';
 
 // TRANSACTIONS
-import transactionsRoute from './routes/transactionsRoute.js';
+import transactionRoutes from './routes/transactionRoutes.js';
 
+// MODELS
 import User from './models/User.js';
 import Transaction from './models/Transaction.js';
 
@@ -24,7 +25,7 @@ app.get('/', (req, res) => {
 });
 
 // API ROUTES
-app.use('/api/transactions', transactionsRoute)
+app.use('/api/transactions', transactionRoutes)
 
 // Call the database functions and start the server.
 async function startServer() {
