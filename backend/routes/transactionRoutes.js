@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import Transaction from '../models/Transaction.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = Router();
-
-const CURRENT_USER_ID = '9046c827-023a-43c1-b0e2-628676d54d9c';
+router.use(protect);
 
 // --- CREATE TRANSACTIONS --- //
 router.post('/', async (req, res) => {
@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
     const newTransaction = await Transaction.create({
       description,
       amount,
-      userId: CURRENT_USER_ID,
+      userId: req.user.id,
     });
 
     res.status(201).json(newTransaction);
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const transactions = await Transaction.findAll({
-      where: { userId: CURRENT_USER_ID },
+      where: { userId: req.user.id },
       order: [['created_at', 'DESC']],
     });
 
@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
 
   try {
     const transaction = await Transaction.findOne({
-      where: { id, userId: CURRENT_USER_ID },
+      where: { id, userId: req.user.id },
     });
 
     if (!transaction) {
@@ -77,7 +77,7 @@ router.delete('/:id', async (req, res) => {
 
   try {
     const transaction = await Transaction.findOne({
-      where: { id, userId: CURRENT_USER_ID },
+      where: { id, userId: req.user.id },
     });
 
     if (!transaction) {
