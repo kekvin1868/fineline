@@ -33,6 +33,8 @@ const protect = (req, res, next) => {
 
   if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
   }
 };
 
