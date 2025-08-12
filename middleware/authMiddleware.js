@@ -6,6 +6,9 @@ dotenv.config();
 
 const secret = process.env.JWT_SECRET;
 
+if (!secret || typeof secret !== 'string' || secret.trim() === '') {
+  throw new Error('JWT_SECRET environment variable is not set or is empty. Please set it before starting the application.');
+}
 const protect = (req, res, next) => {
   let token;
 
