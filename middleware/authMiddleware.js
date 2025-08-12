@@ -29,10 +29,6 @@ const protect = (req, res, next) => {
       console.error("JWT verification failed: ", error.message);
       res.status(401).json({ error: "Unauthorized." });
     }
-  }
-
-  if (!token) {
-    res.status(401).json({ error: 'Unauthorized' });
   } else {
     res.status(401).json({ error: 'Unauthorized' });
   }
