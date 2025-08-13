@@ -9,7 +9,7 @@ const protect = (req, res, next) => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret || typeof secret !== 'string' || secret.trim() === '') {
-    res.status(500).json({ error: 'Server configuration missing' });
+    return res.status(500).json({ error: 'Server configuration missing' });
   }
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
