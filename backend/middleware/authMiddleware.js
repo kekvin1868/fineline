@@ -1,17 +1,16 @@
-
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const secret = process.env.JWT_SECRET;
-
-if (!secret || typeof secret !== 'string' || secret.trim() === '') {
-  throw new Error('Failed to start application, token is not set or is missing.');
-}
-
 const protect = (req, res, next) => {
   let token;
+
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret || typeof secret !== 'string' || secret.trim() === '') {
+    res.status(500).json({ error: 'Server configuration missing' });
+  }
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
     try {
