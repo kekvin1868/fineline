@@ -44,7 +44,9 @@ async function startServer() {
 
     await User.findOrCreate({
       where: { id: '9046c827-023a-43c1-b0e2-628676d54d9c' },
-      username: 'default_user',
+      defaults: {
+        username: 'default_user',
+      }
     });
 
     app.listen(PORT, () => {

@@ -15,3 +15,5 @@ const User = sequelize.define ('User', {
 }, {
   timestamps: false,
 });
+
+export default User;
