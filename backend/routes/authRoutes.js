@@ -6,6 +6,10 @@ const router = Router();
 
 // Generate JWT
 const generateToken = (id) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('Configuration is undefined or not configured.');
+  }
+
   return jwt.sign({ userId: id }, process.env.JWT_SECRET, {
     expiresIn: '30d',
   });
