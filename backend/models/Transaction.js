@@ -20,12 +20,23 @@ const Transaction = sequelize.define('Transaction', {
       max: 100000
     }
   },
+  category: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'Uncategorized',
+  },
+  date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  }
 }, {
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: false,
 });
 
+// Associations
 User.hasMany(Transaction);
 Transaction.belongsTo(User);
 
