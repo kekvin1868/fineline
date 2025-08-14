@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import sequelize from './config/database.js';
+import authRoutes from './routes/authRoutes.js';
 
 // TRANSACTIONS
 import transactionRoutes from './routes/transactionRoutes.js';
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 });
 
 // API ROUTES
+app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes)
 
 // Call the database functions and start the server.
