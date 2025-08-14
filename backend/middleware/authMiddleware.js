@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import User from '../models/User.js';
 
 dotenv.config();
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   let token;
 
   const secret = process.env.JWT_SECRET;
@@ -20,8 +21,12 @@ const protect = (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, secret);
 
-      // Attach decoded data to request object
-      req.user = { id: decoded.userId };
+      // Get user from the token
+      req.user = await User.findByPk(decoded.userId);
+
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized, user not found." });
+      }
 
       next();
     } catch(error) {
