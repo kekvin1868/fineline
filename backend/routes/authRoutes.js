@@ -30,15 +30,11 @@ router.post('/register', async (req, res) => {
       username,
     });
 
-    if (user) {
-      res.status(201).json({
-        id: user.id,
-        username: user.username,
-        token: generateToken(user.id),
-      });
-    } else {
-      res.status(400).json({ error: 'Invalid user data.' });
-    }
+    res.status(201).json({
+      id: user.id,
+      username: user.username,
+      token: generateToken(user.id),
+    });
   } catch (err) {
     console.error('Error registering user:', err.stack);
     res.status(500).json({ error: 'Internal server error.' });
