@@ -1,18 +1,14 @@
 import { Router } from 'express';
 import Transaction from '../models/Transaction.js';
 import { protect } from '../middleware/authMiddleware.js';
+import { validateTransaction } from '../middleware/transactionValidationMiddleware.js';
 
 const router = Router();
 router.use(protect);
 
 // --- CREATE TRANSACTIONS --- //
-router.post('/', async (req, res) => {
+router.post('/', validateTransaction, async (req, res) => {
   const { description, amount } = req.body;
-
-  const validationError = validateAmount(amount);
-  if (validationError) {
-    return res.status(400).json(validationError);
-  }
 
   try {
     const newTransaction = await Transaction.create({
@@ -30,13 +26,22 @@ router.post('/', async (req, res) => {
 
 // --- LIST TRANSACTIONS --- //
 router.get('/', async (req, res) => {
+  const { page = 1, limit = 10 } = req.query; // Default
+
   try {
-    const transactions = await Transaction.findAll({
+    const transactions = await Transaction.findAndCountAll({
       where: { userId: req.user.id },
       order: [['created_at', 'DESC']],
+      offset: (page - 1) * limit,
+      limit: parseInt(limit),
     });
 
-    res.status(200).json(transactions);
+    res.status(200).json({
+      total: transactions.count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      transactions: transactions.rows,
+    });
   } catch (err) {
     console.error('Error fetching transactions:', err.stack);
     res.status(500).json({ error: 'Internal server error.' });
@@ -44,14 +49,9 @@ router.get('/', async (req, res) => {
 });
 
 // --- UPDATE TRANSACTIONS --- //
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateTransaction, async (req, res) => {
   const { id } = req.params;
   const { description, amount } = req.body;
-
-  const validationError = validateAmount(amount);
-  if (validationError) {
-    return res.status(400).json(validationError);
-  }
 
   try {
     const transaction = await Transaction.findOne({
@@ -92,30 +92,5 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
-
-const validateAmount = (amount) => {
-  if (amount === undefined || amount === null) {
-    return { error: 'Amount is required.'};
-  }
-  // Validate amount type and value
-  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
-    return { error: 'Amount must be a valid number.' };
-  }
-  // Reasonable bounds (e.g., not negative, not extremely large, max 2 decimal places)
-  if (amount < 0) {
-    return { error: 'Amount cannot be negative.' };
-  }
-  
-  // Max amount
-  if (amount > 1000000) {
-    return { error: 'Amount is too large.' };
-  }
-  // Check for max 2 decimal places
-  if (!Number.isInteger(amount * 100)) {
-    return { error: 'Amount must have at most 2 decimal places.' };
-  }
-
-  return null;
-}
 
 export default router;
