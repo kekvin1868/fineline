@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Transaction from '../models/Transaction.js';
 import { protect } from '../middleware/authMiddleware.js';
-import { validateTransaction } from '../middleware/transactionValidationMiddleware.js';
+import { validateTransaction, validatePagination } from '../middleware/transactionValidationMiddleware.js';
 
 const router = Router();
 router.use(protect);
@@ -25,7 +25,7 @@ router.post('/', validateTransaction, async (req, res) => {
 });
 
 // --- LIST TRANSACTIONS --- //
-router.get('/', async (req, res) => {
+router.get('/', validatePagination, async (req, res) => {
   const { page = 1, limit = 10 } = req.query; // Default
 
   try {

@@ -15,6 +15,22 @@ export function validateTransaction(req, res, next) {
   next();
 }
 
+export function validatePagination(req, res, next) {
+  const { page, limit } = req.query;
+
+  // Validate Page
+  if (page && (!Number.isInteger(Number(page)) || Number(page) <= 0)) {
+      return res.status(400).json({ error: 'Page must be a positive integer.' });
+  }
+
+  // Validate Limit
+  if (limit && (!Number.isInteger(Number(limit)) || Number(limit) <= 0)) {
+      return res.status(400).json({ error: 'Limit must be a positive integer.' });
+  }
+
+  next();
+}
+
 const validateAmount = (amount) => {
   if (amount === undefined || amount === null) {
     return { error: 'Amount is required.' };
