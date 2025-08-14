@@ -7,10 +7,16 @@ export function validateTransaction(req, res, next) {
     return res.status(400).json(validationError);
   }
 
-  // Validate category (if implemented)
+  // Validate category
   if (category && typeof category !== 'string') {
-    return res.status(400).json({ error: 'Category must be a string.' });
+    return res.status(400).json({ error: 'Invalid category.' });
   }
+
+  // Validate date
+  if (date && !isValidDate(date)) {
+    return res.status(400).json({ error: 'Invalid date format.' });
+  }
+
 
   next();
 }

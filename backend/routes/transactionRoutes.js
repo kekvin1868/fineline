@@ -8,12 +8,14 @@ router.use(protect);
 
 // --- CREATE TRANSACTIONS --- //
 router.post('/', validateTransaction, async (req, res) => {
-  const { description, amount } = req.body;
+  const { description, amount, category, date } = req.body;
 
   try {
     const newTransaction = await Transaction.create({
       description,
       amount,
+      category,
+      date,
       userId: req.user.id,
     });
 
@@ -51,7 +53,7 @@ router.get('/', validatePagination, async (req, res) => {
 // --- UPDATE TRANSACTIONS --- //
 router.put('/:id', validateTransaction, async (req, res) => {
   const { id } = req.params;
-  const { description, amount } = req.body;
+  const { description, amount, category, date } = req.body;
 
   try {
     const transaction = await Transaction.findOne({
@@ -63,7 +65,7 @@ router.put('/:id', validateTransaction, async (req, res) => {
     }
 
     // Update
-    await transaction.update({ description, amount });
+    await transaction.update({ description, amount, category, date });
     res.status(200).json(transaction);
   } catch (err) {
     console.error('Error updating transaction:', err.stack);
