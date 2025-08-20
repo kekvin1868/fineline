@@ -36,7 +36,7 @@ router.post('/register', async (req, res) => {
       name: username, // 'name' is a required field
       password: password,
       path: 'users',
-      type: 'internal',
+      type: 'external',
       is_active: true,
     };
 
