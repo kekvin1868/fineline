@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import sequelize from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 
@@ -9,6 +10,10 @@ import transactionRoutes from './routes/transactionRoutes.js';
 // MODELS
 import User from './models/User.js';
 import Transaction from './models/Transaction.js';
+
+// Swagger
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger.js';
 
 // Instance of Express.js
 const app = express();
@@ -28,6 +33,9 @@ app.get('/', (req, res) => {
 // API ROUTES
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes)
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Call the database functions and start the server.
 async function startServer() {
@@ -53,6 +61,7 @@ async function startServer() {
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
+      console.log(`API docs available at http://localhost:${PORT}/api-docs`);
     });
   } catch (err) {
     console.error('Unable to connect to the database: ', err);
