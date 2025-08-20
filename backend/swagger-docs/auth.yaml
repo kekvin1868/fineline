@@ -1,0 +1,109 @@
+tags:
+  - name: Authentication
+    description: User authentication and registration
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+          description: Optional email address for the user.
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for the application
+        authentikToken:
+          type: string
+          description: Access token from Authentik
+
+    User:
+      type: object
+      required:
+        - username
+      properties:
+        id:
+          type: string
+          description: The auto-generated id of the user.
+        username:
+          type: string
+          description: The username of the user.
+      example:
+        id: "9046c827-023a-43c1-b0e2-628676d54d9c"
+        username: "testuser"
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  username:
+                    type: string
+                  token:
+                    type: string
+        '400':
+          description: Bad request or user already exists
+        '500':
+          description: Internal server error
+
+  /api/auth/login:
+    post:
+      summary: Log in a user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Credentials are required
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Internal server error
