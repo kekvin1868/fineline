@@ -8,13 +8,15 @@ dotenv.config();
 const protect = async (req, res, next) => {
   let token;
 
-  const secret = process.env.JWT_SECRET;
-  const AUTHENTIK_INTROSPECTION_URL = process.env.AUTHENTIK_INTROSPECTION_URL;
-  const CLIENT_ID = process.env.AUTHENTIK_CLIENT_ID;
-  const CLIENT_SECRET = process.env.AUTHENTIK_CLIENT_SECRET;
+  const secret = process.env.AUTHENTIK_SECRET_KEY;
+  const AUTHENTIK_USERINFO_URL = process.env.AUTHENTIK_USERINFO_URL;
 
   if (!secret || typeof secret !== 'string' || secret.trim() === '') {
     return res.status(500).json({ error: 'Server configuration missing' });
+  }
+
+  if (!AUTHENTIK_USERINFO_URL || typeof AUTHENTIK_USERINFO_URL !== 'string' || AUTHENTIK_USERINFO_URL.trim() === '') {
+    return res.status(500).json({ error: 'Server configuration missing: AUTHENTIK_USERINFO_URL' });
   }
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
@@ -34,17 +36,12 @@ const protect = async (req, res, next) => {
 
       const authentikToken = req.headers['x-authentik-token']; // Custom header for Authentik token
       if (authentikToken) {
-        const introspectionResponse = await axios.post(
-          AUTHENTIK_INTROSPECTION_URL,
-          new URLSearchParams({
-            token: authentikToken,
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-          }),
-          { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        const userInfoResponse = await axios.get(
+          AUTHENTIK_USERINFO_URL,
+          { headers: { Authorization: `Bearer ${authentikToken}` } }
         );
 
-        if (!introspectionResponse.data.active) {
+        if (!userInfoResponse.data || !userInfoResponse.data.sub) {
           return res.status(401).json({ error: 'Invalid Authentik token.' });
         }
       }
