@@ -25,9 +25,6 @@ components:
           type: string
         password:
           type: string
-        email:
-          type: string
-          description: Optional email address for the user.
 
     AuthResponse:
       type: object
