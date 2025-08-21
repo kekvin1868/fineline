@@ -35,15 +35,18 @@ const protect = async (req, res, next) => {
       }
 
       const authentikToken = req.headers['x-authentik-token']; // Custom header for Authentik token
-      if (authentikToken) {
-        const userInfoResponse = await axios.get(
-          AUTHENTIK_USERINFO_URL,
-          { headers: { Authorization: `Bearer ${authentikToken}` } }
-        );
+      
+      if (!authentikToken) {
+        return res.status(401).json({ error: 'Authentik token is required.' });
+      }
 
-        if (!userInfoResponse.data || !userInfoResponse.data.sub) {
-          return res.status(401).json({ error: 'Invalid Authentik token.' });
-        }
+      const userInfoResponse = await axios.get(
+        AUTHENTIK_USERINFO_URL,
+        { headers: { Authorization: `Bearer ${authentikToken}` } }
+      );
+
+      if (!userInfoResponse.data || !userInfoResponse.data.sub) {
+        return res.status(401).json({ error: 'Invalid Authentik token.' });
       }
 
       next();
