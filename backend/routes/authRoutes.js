@@ -99,7 +99,7 @@ router.post('/login', async (req, res) => {
       user = await User.create({ username });
     }
 
-    const appToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+    const appToken = jwt.sign({ userId: user.id }, AUTHENTIK_SECRET_KEY, {
       expiresIn: '30d',
     });
 
