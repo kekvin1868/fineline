@@ -1,0 +1,165 @@
+tags:
+  - name: Transactions
+    description: The transactions managing API
+
+components:
+  schemas:
+    Transaction:
+      type: object
+      required:
+        - description
+        - amount
+        - category
+        - date
+      properties:
+        id:
+          type: integer
+          description: The auto-generated id of the transaction.
+        description:
+          type: string
+          description: The description of the transaction.
+        amount:
+          type: number
+          format: float
+          description: The amount of the transaction.
+        category:
+          type: string
+          description: The category of the transaction.
+        date:
+          type: string
+          format: date
+          description: The date of the transaction.
+        userId:
+          type: integer
+          description: The id of the user who created the transaction.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date the transaction was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date the transaction was last updated.
+      example:
+        id: 1
+        description: "Coffee"
+        amount: -4.50
+        category: "Food"
+        date: "2023-10-27T00:00:00.000Z"
+        userId: 1
+        createdAt: "2023-10-27T10:00:00.000Z"
+        updatedAt: "2023-10-27T10:00:00.000Z"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /api/transactions:
+    post:
+      summary: Create a new transaction
+      tags: [Transactions]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '201':
+          description: The transaction was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '500':
+          description: Internal server error
+    get:
+      summary: Returns the list of all the transactions for the user
+      tags: [Transactions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: The number of items to return
+      responses:
+        '200':
+          description: The list of the transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+        '500':
+          description: Internal server error
+
+  /api/transactions/{id}:
+    put:
+      summary: Update the transaction by the id
+      tags: [Transactions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: The transaction id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: The transaction was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          description: The transaction was not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Remove the transaction by id
+      tags: [Transactions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: The transaction id
+      responses:
+        '200':
+          description: The transaction was deleted
+        '404':
+          description: The transaction was not found
+        '500':
+          description: Internal server error

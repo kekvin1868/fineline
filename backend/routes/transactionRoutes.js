@@ -6,7 +6,6 @@ import { validateTransaction, validatePagination } from '../middleware/transacti
 const router = Router();
 router.use(protect);
 
-// --- CREATE TRANSACTIONS --- //
 router.post('/', validateTransaction, async (req, res) => {
   const { description, amount, category, date } = req.body;
 
@@ -26,7 +25,6 @@ router.post('/', validateTransaction, async (req, res) => {
   }
 });
 
-// --- LIST TRANSACTIONS --- //
 router.get('/', validatePagination, async (req, res) => {
   const { page = 1, limit = 10 } = req.query; // Default
 
@@ -50,7 +48,6 @@ router.get('/', validatePagination, async (req, res) => {
   }
 });
 
-// --- UPDATE TRANSACTIONS --- //
 router.put('/:id', validateTransaction, async (req, res) => {
   const { id } = req.params;
   const { description, amount, category, date } = req.body;
@@ -73,7 +70,6 @@ router.put('/:id', validateTransaction, async (req, res) => {
   }
 });
 
-// --- DELETE TRANSACTIONS --- //
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 

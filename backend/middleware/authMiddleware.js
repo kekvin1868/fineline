@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import dotenv from 'dotenv';
 import User from '../models/User.js';
 
@@ -7,10 +8,15 @@ dotenv.config();
 const protect = async (req, res, next) => {
   let token;
 
-  const secret = process.env.JWT_SECRET;
+  const secret = process.env.AUTHENTIK_SECRET_KEY;
+  const AUTHENTIK_USERINFO_URL = process.env.AUTHENTIK_USERINFO_URL;
 
   if (!secret || typeof secret !== 'string' || secret.trim() === '') {
     return res.status(500).json({ error: 'Server configuration missing' });
+  }
+
+  if (!AUTHENTIK_USERINFO_URL || typeof AUTHENTIK_USERINFO_URL !== 'string' || AUTHENTIK_USERINFO_URL.trim() === '') {
+    return res.status(500).json({ error: 'Server configuration missing: AUTHENTIK_USERINFO_URL' });
   }
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
@@ -26,6 +32,21 @@ const protect = async (req, res, next) => {
 
       if (!req.user) {
         return res.status(401).json({ error: "Unauthorized, user not found." });
+      }
+
+      const authentikToken = req.cookies.authentikToken; // Get from cookie instead of header
+      
+      if (!authentikToken) {
+        return res.status(401).json({ error: 'Authentik token is required.' });
+      }
+
+      const userInfoResponse = await axios.get(
+        AUTHENTIK_USERINFO_URL,
+        { headers: { Authorization: `Bearer ${authentikToken}` } }
+      );
+
+      if (!userInfoResponse.data || !userInfoResponse.data.sub) {
+        return res.status(401).json({ error: 'Invalid Authentik token.' });
       }
 
       next();
