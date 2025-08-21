@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import sequelize from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 
@@ -24,11 +24,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(cors());
-
-// A simple test route to make sure the server is working.
-app.get('/', (req, res) => {
-  res.send('Money Tracker Backend is running!');
-});
+app.use(cookieParser());
 
 // API ROUTES
 app.use('/api/auth', authRoutes);

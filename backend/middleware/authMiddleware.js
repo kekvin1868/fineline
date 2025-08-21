@@ -34,7 +34,7 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ error: "Unauthorized, user not found." });
       }
 
-      const authentikToken = req.headers['x-authentik-token']; // Custom header for Authentik token
+      const authentikToken = req.cookies.authentikToken; // Get from cookie instead of header
       
       if (!authentikToken) {
         return res.status(401).json({ error: 'Authentik token is required.' });

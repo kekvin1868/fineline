@@ -60,10 +60,16 @@ router.post('/register', async (req, res) => {
       username,
     });
 
+    const token = generateToken(user.id);
+    res.cookie('appToken', token, {
+      httpOnly: true,
+      secure: true, // Ensure this is true in production
+      sameSite: 'Strict',
+    });
+
     res.status(201).json({
       id: user.id,
       username: user.username,
-      token: generateToken(user.id),
     });
   } catch (err) {
 
@@ -118,11 +124,21 @@ router.post('/login', async (req, res) => {
       user = await User.create({ username });
     }
 
-    const appToken = jwt.sign({ userId: user.id }, AUTHENTIK_SECRET_KEY, {
-      expiresIn: '30d',
+    const token = generateToken(user.id);
+    res.cookie('appToken', token, {
+      httpOnly: true,
+      secure: true, // Ensure this is true in production
+      sameSite: 'Strict',
     });
 
-    res.json({ token: appToken, authentikToken: access_token });
+    // Store the Authentik token in a cookie for middleware access
+    res.cookie('authentikToken', access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+    });
+
+    res.status(200).json({ message: 'Login successful' });
   } catch (err) {
     console.error('Error logging in user:', err.stack);
     if (err.response && (err.response.status === 401 || err.response.status === 400)) {
