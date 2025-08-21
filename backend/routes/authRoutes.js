@@ -67,7 +67,7 @@ router.post('/register', async (req, res) => {
     });
   } catch (err) {
 
-    // Handle Authnetik API errors
+    // Handle Authentik API errors
     if (err.response) { 
       if (err.response.status === 400) {
         return res.status(400).json({ error: 'User already exists in Authentik.', details: err.response.data });
