@@ -36,7 +36,7 @@ router.post('/register', async (req, res) => {
       name: username, // 'name' is a required field
       password: password,
       path: 'users',
-      type: 'external',
+      type: 'internal',
       is_active: true,
     };
 
@@ -66,11 +66,30 @@ router.post('/register', async (req, res) => {
       token: generateToken(user.id),
     });
   } catch (err) {
-    if (err.response && err.response.status === 400) {
-      return res.status(400).json({ error: 'User already exists in Authentik.' });
+
+    // Handle Authnetik API errors
+    if (err.response) { 
+      if (err.response.status === 400) {
+        return res.status(400).json({ error: 'User already exists in Authentik.', details: err.response.data });
+      }
+      if (err.response.status === 403) {
+        return res.status(403).json({ error: 'Forbidden. Check API Token permissions.', details: err.response.data });
+      }
     }
-    console.error('Error registering user:', err.stack);
-    res.status(500).json({ error: 'Internal server error.' });
+
+    // Handle Sequelize errors
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      console.error('Database unique constraint error:', err.fields);
+      return res.status(400).json({ error: 'User already exists in the local database.' });
+    }
+
+    if (err.name === 'SequelizeValidationError') {
+      console.error('Database validation error:', err.errors);
+      return res.status(400).json({ error: 'Validation error.', details: err.errors });
+    }
+
+    console.error('Unexpected error:', err.stack);
+    res.status(500).json({ error: `Internal server error. ${err.message}` });
   }
 });
 
