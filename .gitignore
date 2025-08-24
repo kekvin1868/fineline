@@ -1,22 +1,45 @@
+
 # Dependency directories
 node_modules/
 package-lock.json
+pnpm-lock.yaml
 
 # Environment variables
 .env
+.env.*
+.env.local
+.env.production
+.env.development
+!.env.example
 
 # Logs
 *.log
+logs
 npm-debug.log*
 
 # OS-specific files
 .DS_Store
 
-# IDE and editor files
+# IDE/editor files
 .idea/
 .vscode/
+.fleet
+*.sublime-workspace
+*.sublime-project
 
 # Build and temporary files
 dist/
 build/
 coverage/
+*.tgz
+
+# Nuxt dev/build outputs
+.output/
+.data/
+.nuxt/
+.nitro/
+.cache/
+
+# Misc
+manifest/
+
