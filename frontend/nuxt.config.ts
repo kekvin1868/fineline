@@ -1,13 +1,23 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2025-09-29',
   devtools: { enabled: true },
-
+  devServer: {
+    port: 3001
+  },
+  runtimeConfig: {
+    public: {
+      backendBaseUrl: process.env.API_BASE_URL || 'http://localhost:3000'
+    }
+  },
   modules: [
-    '@nuxt/content',
-    '@nuxt/eslint',
-    '@nuxt/image',
-    '@nuxt/test-utils',
-    '@nuxt/ui'
-  ]
-})
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt',
+    '@vueuse/nuxt',
+    'shadcn-nuxt',
+    '@nuxtjs/color-mode'
+  ],
+  colorMode: {
+    classSuffix: ''
+  },
+  css: ['~/assets/css/main.css']
+});
