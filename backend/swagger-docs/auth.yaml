@@ -74,33 +74,57 @@ paths:
                     type: string
                   username:
                     type: string
-                  token:
-                    type: string
         '400':
           description: Bad request or user already exists
         '500':
           description: Internal server error
 
   /api/auth/login:
-    post:
-      summary: Log in a user
+    get:
+      summary: Initiate OAuth login with Authentik
       tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '302':
+          description: Redirect to Authentik login page
+        '400':
+          description: OAuth error
+
+  /api/auth/callback:
+    get:
+      summary: Handle OAuth callback from Authentik
+      tags: [Authentication]
+      parameters:
+        - in: query
+          name: code
+          schema:
+            type: string
+          description: Authorization code from Authentik
+        - in: query
+          name: state
+          schema:
+            type: string
+          description: CSRF protection state parameter
+      responses:
+        '302':
+          description: Redirect to dashboard after successful authentication
+        '400':
+          description: Authentication failed
+        '500':
+          description: Internal server error
+
+  /api/auth/logout:
+    post:
+      summary: Logout user
+      tags: [Authentication]
       responses:
         '200':
-          description: Login successful
+          description: Logged out successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '400':
-          description: Credentials are required
-        '401':
-          description: Invalid credentials
-        '500':
-          description: Internal server error
+                type: object
+                properties:
+                  message:
+                    type: string
+                  endSessionUrl:
+                    type: string

@@ -1,5 +1,5 @@
 export function validateTransaction(req, res, next) {
-  const { amount, category } = req.body;
+  const { amount, category, date } = req.body;
 
   // Validate amount
   const validationError = validateAmount(amount);
@@ -54,4 +54,10 @@ const validateAmount = (amount) => {
     return { error: 'Amount must have at most 2 decimal places.' };
   }
   return null;
+};
+
+const isValidDate = (dateString) => {
+  if (!dateString) return true; // Allow empty dates
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
 };
