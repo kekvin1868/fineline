@@ -132,7 +132,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   const updateTransaction = async (id: string, transactionData: Omit<Transaction, 'id' | 'created_at' | 'userId'>) => {
     if (isDemoMode.value) {
       const index = transactions.value.findIndex(t => t.id === id)
-      if (index !== -1 && transactions.value[index]) {
+      if (index !== -1) {
         const existing = transactions.value[index]
         transactions.value[index] = {
           id: existing.id,
