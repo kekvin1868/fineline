@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@iconify/vue'
+import { formatIDR } from '@/lib/utils'
+import type { StatCardProps } from '@/components/StatCard.vue'
+import TransactionTableRow from '~/components/transaction/TransactionTableRow.vue'
 
 definePageMeta({
   layout: 'default'
@@ -41,12 +44,41 @@ const switchToRealMode = () => {
   window.location.href = `${config.public.backendBaseUrl}/api/auth/login`
 }
 
-// Recent transactions for dashboard
+//-- STATISTICS DASHBOARD START --//
+
+// `StatCard` Props
+const stats = computed<StatCardProps[]>(() => [
+  {
+    title: "Total Balance",
+    icon: "mdi:coins",
+    value: formatIDR(Math.abs(totalBalance.value), true),
+    valueColor: totalBalance.value >= 0 ? 'text-green-600' : 'text-red-600'
+  },
+  {
+    title: "Monthly Income",
+    icon: "mdi:trending-up",
+    value: formatIDR(monthlyIncome.value, true),
+    valueColor: monthlyIncome.value >= 0 ? 'text-green-600' : 'text-red-600'
+  },
+  {
+    title: "Monthly Expenses",
+    icon: "mdi:trending-down",
+    value: formatIDR(monthlyExpenses.value, true),
+    valueColor: 'text-red-600'
+  },
+  {
+    title: "Total Transactions",
+    icon: "mdi:cash-multiple",
+    value: recentTransactions.value.length
+  }
+]);
+
+// RECENT TRANSACTION
 const recentTransactions = computed(() => 
   transactionsStore.transactions.slice(0, 5)
 )
 
-// Summary stats
+// SUMMARY
 const totalBalance = computed(() => 
   transactionsStore.transactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0)
 )
@@ -63,6 +95,27 @@ const monthlyExpenses = computed(() =>
     .reduce((sum: number, t: any) => sum + Math.abs(Number(t.amount)), 0)
 )
 
+// Handle transaction creation
+const handleTransactionCreated = () => {
+  transactionsStore.fetchTransactions()
+}
+
+// Handle transaction update
+const handleTransactionUpdated = () => {
+  transactionsStore.fetchTransactions()
+}
+
+// Handle transaction deletion
+const handleDeleteTransaction = async (transactionId: string) => {
+  try {
+    await transactionsStore.deleteTransaction(transactionId)
+  } catch (error) {
+    console.error('Failed to delete transaction:', error)
+  }
+}
+
+
+
 onMounted(() => {
   initializeApp()
 })
@@ -78,7 +131,6 @@ useHead({
     <header class="border-b">
       <div class="flex h-20 items-center px-6">
         <div class="flex items-center space-x-6">
-          <Icon icon="mdi:currency-usd" width="32" class="text-primary" />
           <h1 class="text-2xl font-bold">Fineline</h1>
           <Badge v-if="isDemoMode" variant="secondary" class="text-base px-3 py-1">
             Demo Mode
@@ -137,47 +189,14 @@ useHead({
 
       <!-- Stats Cards -->
       <div class="grid gap-6 md:grid-cols-4">
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle class="text-base font-semibold select-none">Total Balance</CardTitle>
-            <Icon icon="mdi:currency-usd" width="24" class="text-muted-foreground" />
-          </CardHeader>
-          <CardContent class="pt-2">
-            <div class="text-3xl font-bold select-none" :class="totalBalance >= 0 ? 'text-green-600' : 'text-red-600'">
-              ${{ Math.abs(totalBalance).toFixed(2) }}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle class="text-base font-semibold select-none">Monthly Income</CardTitle>
-            <Icon icon="mdi:trending-up" width="24" class="text-muted-foreground" />
-          </CardHeader>
-          <CardContent class="pt-2">
-            <div class="text-3xl font-bold text-green-600 select-none">${{ monthlyIncome.toFixed(2) }}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle class="text-base font-semibold select-none">Monthly Expenses</CardTitle>
-            <Icon icon="mdi:trending-down" width="24" class="text-muted-foreground" />
-          </CardHeader>
-          <CardContent class="pt-2">
-            <div class="text-3xl font-bold text-red-600 select-none">${{ monthlyExpenses.toFixed(2) }}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle class="text-base font-semibold select-none">Total Transactions</CardTitle>
-            <Icon icon="mdi:receipt" width="24" class="text-muted-foreground" />
-          </CardHeader>
-          <CardContent class="pt-2">
-            <div class="text-3xl font-bold select-none">{{ recentTransactions.length }}</div>
-          </CardContent>
-        </Card>
+        <StatCard 
+          v-for="stat in stats" 
+          :key="stat.title"
+          :title="stat.title"
+          :icon="stat.icon"
+          :value="stat.value"
+          :valueColor="stat.valueColor"
+        />
       </div>
 
       <!-- Full Width Transactions Table -->
@@ -186,14 +205,12 @@ useHead({
           <div class="flex items-center justify-between">
             <CardTitle class="select-none text-xl font-semibold">All Transactions</CardTitle>
             <div class="flex items-center space-x-3">
-              <Button @click="$router.push('/transactions')" variant="outline" size="default" class="text-base px-6">
-                <Icon icon="mdi:plus" width="20" class="mr-3" />
-                Add New
-              </Button>
-              <Button @click="$router.push('/transactions')" size="default" variant="outline" class="text-base px-6">
-                <Icon icon="mdi:table" width="20" class="mr-3" />
-                Manage All
-              </Button>
+              <TransactionDialog 
+                trigger-text="Add New"
+                trigger-variant="outline"
+                trigger-size="default"
+                @transaction-created="handleTransactionCreated"
+              />
             </div>
           </div>
         </CardHeader>
@@ -201,11 +218,7 @@ useHead({
           <div v-if="recentTransactions.length === 0" class="text-center py-16 text-muted-foreground">
             <Icon icon="mdi:credit-card" width="64" class="mx-auto mb-6 opacity-20" />
             <p class="select-none text-lg font-medium mb-2">No transactions yet</p>
-            <p class="text-base select-none mb-6">Start by adding your first transaction!</p>
-            <Button @click="$router.push('/transactions')" variant="outline" class="text-base px-8 py-3">
-              <Icon icon="mdi:plus" width="20" class="mr-3" />
-              Add Transaction
-            </Button>
+            <p class="text-base select-none">Start by adding your first transaction using the "Add New" button above!</p>
           </div>
           
           <div v-else class="space-y-5">
@@ -220,52 +233,13 @@ useHead({
             </div>
             
             <!-- Transaction Rows -->
-            <div 
-              v-for="transaction in recentTransactions" 
+            <TransactionTableRow
+              v-for="transaction in recentTransactions"
               :key="transaction.id"
-              class="grid grid-cols-6 gap-6 py-4 border-b hover:bg-muted/50 transition-colors select-none"
-            >
-              <div class="text-base text-muted-foreground font-medium">
-                {{ new Date(transaction.date).toLocaleDateString() }}
-              </div>
-              <div class="text-base font-semibold">
-                {{ transaction.description || 'Transaction' }}
-              </div>
-              <div class="text-base">
-                <Badge variant="secondary" class="text-sm px-3 py-1 font-medium">
-                  {{ transaction.category }}
-                </Badge>
-              </div>
-              <div class="text-base">
-                <Badge 
-                  :variant="Number(transaction.amount) >= 0 ? 'default' : 'destructive'"
-                  class="capitalize text-sm px-3 py-1 font-medium"
-                >
-                  <Icon 
-                    :icon="Number(transaction.amount) >= 0 ? 'mdi:plus-circle' : 'mdi:minus-circle'" 
-                    width="16" 
-                    class="mr-2" 
-                  />
-                  {{ Number(transaction.amount) >= 0 ? 'Income' : 'Expense' }}
-                </Badge>
-              </div>
-              <div 
-                class="text-base font-bold text-right"
-                :class="Number(transaction.amount) >= 0 ? 'text-green-600' : 'text-red-600'"
-              >
-                {{ Number(transaction.amount) >= 0 ? '+' : '' }}${{ Number(transaction.amount).toFixed(2) }}
-              </div>
-              <div class="text-center">
-                <Button 
-                  @click="$router.push('/transactions')" 
-                  variant="ghost" 
-                  size="default"
-                  class="px-4 py-2"
-                >
-                  <Icon icon="mdi:pencil" width="18" />
-                </Button>
-              </div>
-            </div>
+              :transaction="transaction"
+              @transaction-updated="handleTransactionUpdated"
+              @delete="handleDeleteTransaction"
+            />
           </div>
         </CardContent>
       </Card>
