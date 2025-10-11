@@ -39,3 +39,13 @@ export function formatIDR(amount: number, showSign: boolean = false): string {
   
   return formatted
 }
+
+export function cookieParser(cookieString: string): Record<string, string> {
+  const cookieValue = cookieString.split('; ').reduce((acc, curr) => {
+    const [key, value] = curr.split('=')
+    acc[key] = value
+    return acc
+  }, {} as Record<string, string>)
+
+  return cookieValue
+}
