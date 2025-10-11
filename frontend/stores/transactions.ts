@@ -1,8 +1,9 @@
 // stores/transactions.ts
-import { defineStore } from 'pinia'
-import CryptoJS from 'crypto-js'
+import { defineStore } from 'pinia';
+import { cookieParser } from '~/lib/utils';
+import CryptoJS from 'crypto-js';
 
-interface Transaction {
+export interface Transaction {
   id: string
   description: string
   amount: number
@@ -75,8 +76,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     loading.value = true
     try {
       const config = useRuntimeConfig()
-      const appToken = document.cookie.split('; ').find(row => row.startsWith('appToken='))?.split('=')[1] || ''
-      
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
       const response = await $fetch(`${config.public.backendBaseUrl}/api/transactions`, {
         credentials: 'include',
         headers: { Authorization: `Bearer ${appToken}` }
@@ -107,8 +109,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     loading.value = true
     try {
       const config = useRuntimeConfig()
-      const appToken = document.cookie.split('; ').find(row => row.startsWith('appToken='))?.split('=')[1] || ''
-      
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
       await $fetch(`${config.public.backendBaseUrl}/api/transactions`, {
         method: 'POST',
         credentials: 'include',
@@ -128,6 +131,79 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   }
 
+  // Update transaction
+  const updateTransaction = async (id: string, transactionData: Omit<Transaction, 'id' | 'created_at' | 'userId'>) => {
+    if (isDemoMode.value) {
+      const index = transactions.value.findIndex(t => t.id === id)
+      if (index !== -1) {
+        const existing = transactions.value[index]
+        transactions.value[index] = {
+          id: existing.id,
+          created_at: existing.created_at,
+          userId: existing.userId,
+          ...transactionData
+        }
+        saveDemoToStorage()
+      }
+      return
+    }
+
+    loading.value = true
+    try {
+      const config = useRuntimeConfig()
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
+      await $fetch(`${config.public.backendBaseUrl}/api/transactions/${id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${appToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: transactionData
+      })
+
+      await fetchTransactions()
+    } catch (err) {
+      console.error('Failed to update transaction:', err)
+      error.value = 'Failed to update transaction'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Delete transaction
+  const deleteTransaction = async (id: string) => {
+    if (isDemoMode.value) {
+      transactions.value = transactions.value.filter(t => t.id !== id)
+      saveDemoToStorage()
+      return
+    }
+
+    loading.value = true
+    try {
+      const config = useRuntimeConfig()
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
+      await $fetch(`${config.public.backendBaseUrl}/api/transactions/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${appToken}`
+        }
+      })
+
+      await fetchTransactions()
+    } catch (err) {
+      console.error('Failed to delete transaction:', err)
+      error.value = 'Failed to delete transaction'
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     transactions,
     loading,
@@ -136,6 +212,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     setDemoMode,
     fetchTransactions,
     createTransaction,
+    updateTransaction,
+    deleteTransaction,
     loadDemoData
   }
 })
