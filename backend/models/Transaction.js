@@ -36,8 +36,20 @@ const Transaction = sequelize.define('Transaction', {
   updatedAt: false,
 });
 
-// Associations
-User.hasMany(Transaction);
-Transaction.belongsTo(User);
+// Associations with proper foreign key configuration
+User.hasMany(Transaction, { 
+  foreignKey: {
+    name: 'userId',
+    type: DataTypes.UUID,
+    allowNull: false
+  }
+});
+Transaction.belongsTo(User, { 
+  foreignKey: {
+    name: 'userId',
+    type: DataTypes.UUID,
+    allowNull: false
+  }
+});
 
 export default Transaction;

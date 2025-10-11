@@ -28,6 +28,7 @@ const enterDemoMode = () => {
   <div class="min-h-screen flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-md space-y-6">
       <div class="flex flex-col items-center text-center space-y-2">
+        <Icon name="dollar-sign" :size="32" class="text-primary" />
         <h1 class="text-3xl font-bold tracking-tight">Welcome to Fineline</h1>
         <p class="text-muted-foreground">Track your finances with ease</p>
       </div>
