@@ -43,10 +43,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits<Emits>()
 
-onMounted(() => {
-  console.log('TransactionDialog component mounted')
-})
-
 const transactionsStore = useTransactionsStore()
 const isSubmitting = ref(false)
 const isOpen = ref(false)
@@ -139,7 +135,6 @@ const isFormValid = computed(() => {
 })
 
 const handleSubmit = async () => {
-  console.log('Submit clicked', formData.value)
   if (!isFormValid.value) return
   
   isSubmitting.value = true
