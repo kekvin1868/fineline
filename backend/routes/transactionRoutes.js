@@ -2,18 +2,20 @@ import { Router } from 'express';
 import Transaction from '../models/Transaction.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { validateTransaction, validatePagination } from '../middleware/transactionValidationMiddleware.js';
+import { validateCategoryOwnership } from '../middleware/categoryValidationMiddleware.js';
 
 const router = Router();
 router.use(protect);
 
-router.post('/', validateTransaction, async (req, res) => {
-  const { description, amount, category, date } = req.body;
+// CREATE Transaction
+router.post('/', validateTransaction, validateCategoryOwnership, async (req, res) => {
+  const { description, amount, categoryId, date } = req.body;
 
   try {
     const newTransaction = await Transaction.create({
       description,
       amount,
-      category,
+      categoryId,
       date,
       userId: req.user.id,
     });
@@ -25,6 +27,7 @@ router.post('/', validateTransaction, async (req, res) => {
   }
 });
 
+// GET Transaction
 router.get('/', validatePagination, async (req, res) => {
   const { page = 1, limit = 10 } = req.query; // Default
 
@@ -48,6 +51,7 @@ router.get('/', validatePagination, async (req, res) => {
   }
 });
 
+// UPDATE Transaction
 router.put('/:id', validateTransaction, async (req, res) => {
   const { id } = req.params;
   const { description, amount, category, date } = req.body;
@@ -70,6 +74,7 @@ router.put('/:id', validateTransaction, async (req, res) => {
   }
 });
 
+// DELETE Transaction
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 

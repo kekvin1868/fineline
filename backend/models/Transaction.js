@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 import User from './User.js';
+import Category from './Category.js';
 
 const Transaction = sequelize.define('Transaction', {
   id: {
@@ -20,11 +21,6 @@ const Transaction = sequelize.define('Transaction', {
       max: 100000
     }
   },
-  category: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: 'Uncategorized',
-  },
   date: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -36,7 +32,7 @@ const Transaction = sequelize.define('Transaction', {
   updatedAt: false,
 });
 
-// Associations with proper foreign key configuration
+// Associations USERS and TRANSACTIONS
 User.hasMany(Transaction, { 
   foreignKey: {
     name: 'userId',
@@ -50,6 +46,22 @@ Transaction.belongsTo(User, {
     type: DataTypes.UUID,
     allowNull: false
   }
+});
+
+// Associations CATEGORIES and TRANSACTIONS
+Transaction.belongsTo(Category, {
+  foreignKey: {
+    name: 'categoryId',
+    type: DataTypes.UUID,
+    allowNull: false
+  },
+});
+Category.hasMany(Transaction, {
+  foreignKey: {
+    name: 'categoryId',
+    type: DataTypes.UUID,
+    allowNull: false
+  },
 });
 
 export default Transaction;
