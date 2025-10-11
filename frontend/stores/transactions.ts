@@ -1,5 +1,6 @@
 // stores/transactions.ts
 import { defineStore } from 'pinia';
+import { cookieParser } from '~/lib/utils';
 import CryptoJS from 'crypto-js';
 
 export interface Transaction {
@@ -75,8 +76,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     loading.value = true
     try {
       const config = useRuntimeConfig()
-      const appToken = document.cookie.split('; ').find(row => row.startsWith('appToken='))?.split('=')[1] || ''
-      
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
       const response = await $fetch(`${config.public.backendBaseUrl}/api/transactions`, {
         credentials: 'include',
         headers: { Authorization: `Bearer ${appToken}` }
@@ -107,8 +109,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     loading.value = true
     try {
       const config = useRuntimeConfig()
-      const appToken = document.cookie.split('; ').find(row => row.startsWith('appToken='))?.split('=')[1] || ''
-      
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
       await $fetch(`${config.public.backendBaseUrl}/api/transactions`, {
         method: 'POST',
         credentials: 'include',
@@ -148,8 +151,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     loading.value = true
     try {
       const config = useRuntimeConfig()
-      const appToken = document.cookie.split('; ').find(row => row.startsWith('appToken='))?.split('=')[1] || ''
-      
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
       await $fetch(`${config.public.backendBaseUrl}/api/transactions/${id}`, {
         method: 'PUT',
         credentials: 'include',
@@ -180,8 +184,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     loading.value = true
     try {
       const config = useRuntimeConfig()
-      const appToken = document.cookie.split('; ').find(row => row.startsWith('appToken='))?.split('=')[1] || ''
-      
+      const cookies = cookieParser(document.cookie)
+      const appToken = cookies['appToken']
+
       await $fetch(`${config.public.backendBaseUrl}/api/transactions/${id}`, {
         method: 'DELETE',
         credentials: 'include',
