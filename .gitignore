@@ -1,5 +1,6 @@
 
 # Dependency directories
+frontend/.nuxt/*
 node_modules/
 package-lock.json
 pnpm-lock.yaml
@@ -42,4 +43,3 @@ coverage/
 
 # Misc
 manifest/
-
