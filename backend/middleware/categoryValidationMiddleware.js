@@ -39,7 +39,7 @@ export async function validateCategoryOwnership(req, res, next) {
   const userId = req.user.id;
 
   try {
-    const isEmpty = !categoryId || categoryId === null || categoryId === undefined || categoryId === '';
+    const isEmpty = categoryId == null || categoryId === '';
     const category = isEmpty
       ? await getUncategorized(userId)
       : await Category.findOne
