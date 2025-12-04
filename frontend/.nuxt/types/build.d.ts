@@ -14,7 +14,7 @@ declare module "#build/plugins.server.mjs";
 declare module "#build/test-component-wrapper.mjs";
 declare module "#build/color-mode-options.mjs";
 declare module "#build/devtools/settings.mjs";
-declare module "#build/runtime.vue-devtools-client.ZXH61WXb7x7je_gIInZShjgwEWowQE2JI1OP9U_ofnE.js";
+declare module "#build/runtime.vue-devtools-client.4Gi94m_8ig6tI_r_LUTwIOxG_05DXVoHnbYGO23rPC4.js";
 declare module "#build/routes.mjs";
 declare module "#build/pages.mjs";
 declare module "#build/router.options.mjs";
