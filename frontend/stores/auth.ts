@@ -6,25 +6,45 @@ interface User {
   username: string
 }
 
+interface AuthResponse {
+  user?: User
+}
+
+interface LogoutResponse {
+  endSessionUrl?: string
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = computed(() => !!user.value)
   const loading = ref(false)
   const error = ref('')
 
-  const checkAuth = async () => {
+  const checkAuth = async (skipWelcomeCheck = false) => {
     loading.value = true
+    const wasAuthenticated = !!user.value
+
     try {
       const config = useRuntimeConfig()
       const appToken = document.cookie.split('; ').find(row => row.startsWith('appToken='))?.split('=')[1] || ''
-      
-      const response = await $fetch(`${config.public.backendBaseUrl}/api/auth/me`, {
+
+      const response = await $fetch<AuthResponse>(`${config.public.backendBaseUrl}/api/auth/me`, {
         credentials: 'include',
         headers: { Authorization: `Bearer ${appToken}` }
       })
-      
+
       if (response.user) {
         user.value = response.user
+
+        if (!wasAuthenticated && import.meta.client) {
+          const { switchToRealMode } = useDataMigration()
+          await switchToRealMode()
+
+          if (!skipWelcomeCheck) {
+            const { triggerWelcomeMessage } = useWelcomeMessage()
+            triggerWelcomeMessage()
+          }
+        }
       }
       return !!response.user
     } catch (err) {
@@ -40,13 +60,13 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const config = useRuntimeConfig()
-      const response = await $fetch(`${config.public.backendBaseUrl}/api/auth/logout`, {
+      const response = await $fetch<LogoutResponse>(`${config.public.backendBaseUrl}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include'
       })
-      
+
       user.value = null
-      
+
       if (response.endSessionUrl) {
         window.location.href = response.endSessionUrl
       } else {
