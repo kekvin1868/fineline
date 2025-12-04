@@ -16,15 +16,15 @@ const Transaction = sequelize.define('Transaction', {
   amount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
-    validate: {
-      min: -100000,
-      max: 100000
-    }
   },
   date: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW,
+  },
+  categoryId: {
+    type: DataTypes.UUID,
+    allowNull: true,
   }
 }, {
   timestamps: true,
@@ -33,14 +33,14 @@ const Transaction = sequelize.define('Transaction', {
 });
 
 // Associations USERS and TRANSACTIONS
-User.hasMany(Transaction, { 
+User.hasMany(Transaction, {
   foreignKey: {
     name: 'userId',
     type: DataTypes.UUID,
     allowNull: false
   }
 });
-Transaction.belongsTo(User, { 
+Transaction.belongsTo(User, {
   foreignKey: {
     name: 'userId',
     type: DataTypes.UUID,
@@ -53,14 +53,14 @@ Transaction.belongsTo(Category, {
   foreignKey: {
     name: 'categoryId',
     type: DataTypes.UUID,
-    allowNull: false
+    allowNull: true
   },
 });
 Category.hasMany(Transaction, {
   foreignKey: {
     name: 'categoryId',
     type: DataTypes.UUID,
-    allowNull: false
+    allowNull: true
   },
 });
 

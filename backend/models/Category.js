@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 import User from './User.js';
+import FlowType from './Enum/FlowEnum.js';
 
 const Category = sequelize.define('Category', {
   id: {
@@ -16,10 +17,15 @@ const Category = sequelize.define('Category', {
       notEmpty: true,
     }
   },
-  isDefault: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
+  flow: {
+    type: DataTypes.ENUM(...FlowType.values()),
     allowNull: false,
+    validate: {
+      isIn: {
+        args: [FlowType.values()],
+        msg: `Invalid flow type. Must be one of: ${FlowType.values().join(', ')}`
+      }
+    }
   },
   isArchived: {
     type: DataTypes.BOOLEAN,
