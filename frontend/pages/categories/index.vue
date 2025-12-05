@@ -19,6 +19,17 @@ definePageMeta({
   layout: 'default'
 })
 
+const flowClass = (flow) => {
+  if (flow === 'expense') return 'text-red-500'
+  if (flow === 'income') return 'text-green-500'
+  return 'text-yellow-500'
+}
+
+const categoryAmount = (category) => {
+  const total = getCategoryTotal(category.id)
+  return category.flow === 'expense' ? Math.abs(total) : total
+}
+
 const categoriesStore = useCategoriesStore()
 const transactionsStore = useTransactionsStore()
 const authStore = useAuthStore()
@@ -337,12 +348,9 @@ watch(showCreateDialog, (open) => {
                     <span class="text-sm text-gray-600 dark:text-gray-400">Total Amount</span>
                     <span
                       class="text-2xl font-bold"
-                      :class="category.flow === 'expense'
-                        ? 'text-red-500'
-                        : 'text-green-500'
-                      "
+                      :class="flowClass(category.flow)"
                     >
-                      {{ formatIDR(Math.abs(getCategoryTotal(category.id)), true) }}
+                      {{ formatIDR(categoryAmount(category), true) }}
                     </span>
                   </div>
                   <div class="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-800">
