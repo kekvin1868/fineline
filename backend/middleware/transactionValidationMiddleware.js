@@ -1,5 +1,5 @@
 export function validateTransaction(req, res, next) {
-  const { amount, categoryId, date } = req.body;
+  const { amount, date } = req.body;
 
   // Validate amount
   const validationError = validateAmount(amount);
