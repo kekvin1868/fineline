@@ -28,15 +28,15 @@ export function formatIDR(amount: number, showSign: boolean = false): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })
-  
+
   const absAmount = Math.abs(amount)
   const formatted = formatter.format(absAmount)
-  
+
   if (showSign) {
     const sign = amount >= 0 ? '+' : ''
     return `${sign}${formatted}`
   }
-  
+
   return formatted
 }
 
@@ -48,4 +48,8 @@ export function cookieParser(cookieString: string): Record<string, string> {
   }, {} as Record<string, string>)
 
   return cookieValue
+}
+
+export function capitalizeFirst(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }

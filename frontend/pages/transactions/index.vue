@@ -12,6 +12,7 @@ definePageMeta({
 
 const authStore = useAuthStore()
 const transactionsStore = useTransactionsStore()
+const categoriesStore = useCategoriesStore()
 
 const showCreateForm = ref(false)
 const editingTransaction = ref<any>(null)
@@ -20,18 +21,23 @@ const editingTransaction = ref<any>(null)
 const formData = ref({
   description: '',
   amount: '',
-  category: '',
-  date: ''
+  categoryId: '',
+  date: '',
+  isExpense: true
 })
 
 // Create transaction
 const createTransaction = async () => {
-  if (!formData.value.description || !formData.value.amount) return
+  if (!formData.value.description || !formData.value.amount || !formData.value.categoryId) return
+
+  const rawAmount = parseFloat(formData.value.amount)
+  // If expense, make negative; if income, keep positive
+  const amount = formData.value.isExpense ? -Math.abs(rawAmount) : Math.abs(rawAmount)
 
   const transaction = {
     description: formData.value.description,
-    amount: parseFloat(formData.value.amount),
-    category: formData.value.category || 'General',
+    amount: amount,
+    categoryId: formData.value.categoryId,
     date: formData.value.date || new Date().toISOString()
   }
 
@@ -42,16 +48,21 @@ const createTransaction = async () => {
 
 // Update transaction
 const updateTransaction = async () => {
-  if (!editingTransaction.value || !formData.value.description || !formData.value.amount) return
+  if (!editingTransaction.value || !formData.value.description || !formData.value.amount || !formData.value.categoryId) return
+
+  const rawAmount = parseFloat(formData.value.amount)
+  // If expense, make negative; if income, keep positive
+  const amount = formData.value.isExpense ? -Math.abs(rawAmount) : Math.abs(rawAmount)
+  console.log('Amount before sending:', amount)
 
   const updatedTransaction = {
-    id: editingTransaction.value.id,
     description: formData.value.description,
-    amount: parseFloat(formData.value.amount),
-    category: formData.value.category || 'General',
+    amount: amount,
+    categoryId: formData.value.categoryId,
     date: formData.value.date || new Date().toISOString()
   }
 
+  console.log('Updated transaction payload:', updatedTransaction)
   await transactionsStore.updateTransaction(editingTransaction.value.id, updatedTransaction)
   resetForm()
   editingTransaction.value = null
@@ -70,17 +81,20 @@ const resetForm = () => {
   formData.value = {
     description: '',
     amount: '',
-    category: '',
-    date: ''
+    categoryId: '',
+    date: '',
+    isExpense: true
   }
 }
 
 const startEdit = (transaction: any) => {
   editingTransaction.value = transaction
+  const amount = Number(transaction.amount)
   formData.value = {
     description: transaction.description || '',
-    amount: transaction.amount.toString() || '',
-    category: transaction.category || '',
+    amount: Math.abs(amount).toString() || '',
+    categoryId: transaction.categoryId || '',
+    isExpense: amount < 0,
     date: (transaction.date || transaction.created_at) ? new Date(transaction.date || transaction.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
   }
   showCreateForm.value = true
@@ -109,6 +123,7 @@ const getTransactionTypeBadge = (amount: number) => {
 
 // Load transactions on mount
 onMounted(async () => {
+  await categoriesStore.fetchCategories()
   await transactionsStore.fetchTransactions()
 })
 
@@ -133,7 +148,7 @@ useHead({
             <h1 class="text-xl font-bold">Transactions</h1>
           </div>
         </div>
-        
+
         <div class="ml-auto flex items-center space-x-2">
           <ThemeToggle />
           <Button @click="showCreateForm = true; resetForm()">
@@ -159,41 +174,61 @@ useHead({
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
                 <label class="text-sm font-medium">Description</label>
-                <Input 
-                  v-model="formData.description" 
+                <Input
+                  v-model="formData.description"
                   placeholder="Enter description"
                   required
                 />
               </div>
               <div class="space-y-2">
                 <label class="text-sm font-medium">Amount</label>
-                <Input 
-                  v-model="formData.amount" 
-                  type="number" 
-                  step="0.01" 
-                  placeholder="0.00"
-                  required
-                />
+                <div class="flex gap-2">
+                  <Input
+                    v-model="formData.amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    :variant="formData.isExpense ? 'default' : 'outline'"
+                    @click="formData.isExpense = !formData.isExpense"
+                    class="w-32"
+                  >
+                    {{ formData.isExpense ? 'Expense' : 'Income' }}
+                  </Button>
+                </div>
               </div>
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
                 <label class="text-sm font-medium">Category</label>
-                <Input 
-                  v-model="formData.category" 
-                  placeholder="e.g., Food, Transport, Salary"
-                />
+                <select
+                  v-model="formData.categoryId"
+                  class="w-full px-3 py-2 border rounded-md border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  required
+                >
+                  <option value="" disabled>Select a category</option>
+                  <option
+                    v-for="category in categoriesStore.categories.filter(c => !c.isArchived)"
+                    :key="category.id"
+                    :value="category.id"
+                  >
+                    {{ category.name }}
+                  </option>
+                </select>
               </div>
               <div class="space-y-2">
                 <label class="text-sm font-medium">Date</label>
-                <Input 
-                  v-model="formData.date" 
+                <Input
+                  v-model="formData.date"
                   type="date"
                 />
               </div>
             </div>
-            
+
             <div class="flex space-x-2">
               <Button type="submit">
                 {{ editingTransaction ? 'Update' : 'Create' }} Transaction
@@ -231,19 +266,19 @@ useHead({
               Add Transaction
             </Button>
           </div>
-          
+
           <div v-else class="space-y-4">
-            <div 
-              v-for="transaction in transactionsStore.transactions" 
+            <div
+              v-for="transaction in transactionsStore.transactions"
               :key="transaction.id"
               class="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div class="flex items-center space-x-4">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center"
                      :class="Number(transaction.amount) >= 0 ? 'bg-green-100' : 'bg-red-100'">
-                  <Icon 
-                    :icon="Number(transaction.amount) >= 0 ? 'mdi:trending-up' : 'mdi:trending-down'" 
-                    width="16" 
+                  <Icon
+                    :icon="Number(transaction.amount) >= 0 ? 'mdi:trending-up' : 'mdi:trending-down'"
+                    width="16"
                     :class="Number(transaction.amount) >= 0 ? 'text-green-600' : 'text-red-600'"
                   />
                 </div>
@@ -256,20 +291,20 @@ useHead({
                   </div>
                 </div>
               </div>
-              
+
               <div class="flex items-center space-x-4">
                 <div class="text-right">
                   <p class="font-medium" :class="getAmountColor(Number(transaction.amount))">
                     {{ Number(transaction.amount) >= 0 ? '+' : '' }}${{ Number(transaction.amount).toFixed(2) }}
                   </p>
-                  <Badge 
+                  <Badge
                     :variant="getTransactionTypeBadge(Number(transaction.amount)).variant as any"
                     class="text-xs"
                   >
                     {{ getTransactionTypeBadge(Number(transaction.amount)).text }}
                   </Badge>
                 </div>
-                
+
                 <div class="flex space-x-1">
                   <Button variant="ghost" size="sm" @click="startEdit(transaction)">
                     <Icon icon="mdi:cog" width="14" />

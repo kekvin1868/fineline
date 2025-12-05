@@ -13,6 +13,7 @@ import {
 import { Icon } from '@iconify/vue'
 
 interface Props {
+  triggerTitle?: string
   title?: string
   description?: string
   confirmText?: string
@@ -28,6 +29,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  triggerTitle: '',
   title: 'Confirm Action',
   description: 'Are you sure you want to continue?',
   confirmText: 'Confirm',
@@ -61,6 +63,7 @@ const handleCancel = () => {
         :class="triggerClass"
       >
         <Icon :icon="triggerIcon" width="16" />
+        <span v-if="triggerTitle" class="ml-2">{{ triggerTitle }}</span>
       </Button>
     </DialogTrigger>
     <DialogContent class="sm:max-w-md">

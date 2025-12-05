@@ -1,12 +1,12 @@
-import User from './models/User.js';
-import Transaction from './models/Transaction.js';
-
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import sequelize from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger.js';
 import session from 'express-session';
@@ -29,7 +29,7 @@ app.use(session({
   secret: process.env.AUTHENTIK_SECRET_KEY || 'asdf1234',
   resave: false,
   saveUninitialized: false,
-  cookie: { 
+  cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 10 * 60 * 1000 // 10 minutes
@@ -39,6 +39,8 @@ app.use(session({
 // API ROUTES
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes)
+app.use('/api/categories', categoryRoutes);
+app.use('/api/users', userRoutes);
 
 // Swagger UI
 app.use('/api/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -48,14 +50,6 @@ async function startServer() {
   try {
     await sequelize.authenticate();
     console.log('Database connection established!');
-
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      console.log('Database schema synchronized (alter mode).');
-    } else {
-      await sequelize.sync();
-      console.log('Database schema synchronized.');
-    }
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);

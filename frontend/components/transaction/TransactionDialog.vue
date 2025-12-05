@@ -4,20 +4,21 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from '@/components/ui/dialog'
 import { Icon } from '@iconify/vue'
 
 interface Props {
   mode?: 'add' | 'edit' | 'view'
   transaction?: any
+  categoryParam?: Category
   triggerText?: string
   triggerIcon?: string
   triggerVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
@@ -44,26 +45,26 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits<Emits>()
 
 const transactionsStore = useTransactionsStore()
+const categoriesStore = useCategoriesStore()
 const isSubmitting = ref(false)
 const isOpen = ref(false)
 const currentMode = ref(props.mode)
 
-// Form data
 const formData = ref({
-  type: 'expense', // expense or income
+  type: 'expense',
   description: '',
   amount: '',
-  category: '',
-  date: new Date().toISOString().split('T')[0] // Auto-set to today
+  categoryId: '',
+  date: new Date().toISOString().split('T')[0]
 })
 
-// Reset form function - defined early so it can be used in watchers
+// Reset form function
 const resetForm = () => {
   formData.value = {
     type: 'expense',
     description: '',
     amount: '',
-    category: '',
+    categoryId: props.categoryParam?.id || '',
     date: new Date().toISOString().split('T')[0]
   }
 }
@@ -76,13 +77,13 @@ const loadTransactionData = () => {
       type: Number(props.transaction.amount) >= 0 ? 'income' : 'expense',
       description: props.transaction.description || '',
       amount: amount.toString(),
-      category: props.transaction.category || '',
+      categoryId: props.transaction.categoryId || '',
       date: props.transaction.date ? new Date(props.transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     }
   }
 }
 
-// Watch for mode changes and update currentMode
+// Watch mode
 watch(() => props.mode, (newMode) => {
   currentMode.value = newMode
   if (newMode === 'add') {
@@ -90,12 +91,10 @@ watch(() => props.mode, (newMode) => {
   }
 }, { immediate: true })
 
-// Watch for dialog open state to refresh data
+// Watch dialog open state
 watch(isOpen, (newValue) => {
   if (newValue) {
-    // Reset mode to prop value when dialog opens
     currentMode.value = props.mode
-    // Load transaction data if in edit or view mode
     if (props.transaction && (props.mode === 'edit' || props.mode === 'view')) {
       loadTransactionData()
     } else if (props.mode === 'add') {
@@ -104,53 +103,39 @@ watch(isOpen, (newValue) => {
   }
 })
 
-// Initialize form data when transaction prop changes
+// Initialize form data
 watch(() => props.transaction, (newTransaction) => {
   if (newTransaction && (currentMode.value === 'edit' || currentMode.value === 'view')) {
     loadTransactionData()
   }
 }, { immediate: true })
 
-// Temporary categories until we implement the full category system
-const tempCategories = [
-  'Food & Dining',
-  'Transportation',
-  'Shopping',
-  'Entertainment',
-  'Bills & Utilities',
-  'Healthcare',
-  'Education',
-  'Travel',
-  'Income',
-  'Other'
-]
-
 const isFormValid = computed(() => {
   return formData.value.type &&
-         formData.value.description.trim() && 
-         formData.value.amount && 
+         formData.value.description.trim() &&
+         formData.value.amount &&
          parseFloat(formData.value.amount) > 0 &&
-         formData.value.category &&
          formData.value.date
 })
 
 const handleSubmit = async () => {
   if (!isFormValid.value) return
-  
+
   isSubmitting.value = true
-  
+
   try {
-    // Convert amount based on transaction type
     const amount = parseFloat(formData.value.amount)
     const finalAmount = formData.value.type === 'expense' ? -Math.abs(amount) : Math.abs(amount)
-    
+
     const transactionData = {
       description: formData.value.description,
       amount: finalAmount,
-      category: formData.value.category,
-      date: formData.value.date ? new Date(formData.value.date).toISOString() : new Date().toISOString()
+      categoryId: formData.value.categoryId || null,
+      date: formData.value.date
+        ? new Date(formData.value.date).toISOString()
+        : new Date().toISOString()
     }
-    
+
     if (props.mode === 'edit' && props.transaction) {
       await transactionsStore.updateTransaction(props.transaction.id, transactionData)
       emits('transaction-updated')
@@ -158,7 +143,7 @@ const handleSubmit = async () => {
       await transactionsStore.createTransaction(transactionData)
       emits('transaction-created')
     }
-    
+
     resetForm()
     isOpen.value = false
   } catch (error) {
@@ -170,8 +155,6 @@ const handleSubmit = async () => {
 
 const handleEditMode = () => {
   currentMode.value = 'edit'
-  // Keep the dialog open and just switch mode
-  // The data is already loaded, just enable editing
 }
 
 const handleCancel = () => {
@@ -183,8 +166,8 @@ const handleCancel = () => {
 <template>
   <Dialog v-model:open="isOpen">
     <DialogTrigger>
-      <Button 
-        :variant="triggerVariant" 
+      <Button
+        :variant="triggerVariant"
         :size="triggerSize"
         :class="triggerClass || 'text-base'"
       >
@@ -195,7 +178,7 @@ const handleCancel = () => {
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle class="text-lg">
-          {{ currentMode === 'add' ? 'Add New Transaction' : 
+          {{ currentMode === 'add' ? 'Add New Transaction' :
              currentMode === 'edit' ? 'Edit Transaction' : 'Transaction Details' }}
         </DialogTitle>
         <DialogDescription>
@@ -229,7 +212,7 @@ const handleCancel = () => {
             </Button>
           </div>
         </div>
-        
+
         <div class="grid gap-2">
           <Label for="description">Description</Label>
           <Input
@@ -240,7 +223,7 @@ const handleCancel = () => {
             required
           />
         </div>
-        
+
         <div class="grid gap-2">
           <Label for="amount">Amount</Label>
           <Input
@@ -254,25 +237,37 @@ const handleCancel = () => {
             required
           />
         </div>
-        
-        <div class="grid gap-2">
-          <Label for="category">Category</Label>
-          <Select v-model="formData.category" :disabled="currentMode === 'view'" required>
+
+        <div v-if="!categoryParam" class="grid gap-2">
+          <Label for="categoryId">Category</Label>
+          <Select v-model="formData.categoryId" :disabled="currentMode === 'view'" required>
             <SelectTrigger>
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem 
-                v-for="category in tempCategories" 
-                :key="category" 
-                :value="category"
+              <SelectItem
+                v-for="category in categoriesStore.categories"
+                :key="category.id"
+                :value="category.id"
               >
-                {{ category }}
+                {{ category.name }}
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
-        
+
+        <div v-else class="grid gap-2">
+          <Label>Category</Label>
+          <div class="px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium">
+            {{ categoryParam.name }}
+          </div>
+          <Input
+            v-model="formData.categoryId"
+            :value="categoryParam.id"
+            type="hidden"
+          />
+        </div>
+
         <div class="grid gap-2">
           <Label for="date">Date</Label>
           <Input
@@ -286,7 +281,7 @@ const handleCancel = () => {
       </div>
       <DialogFooter>
         <div v-if="currentMode === 'view'" class="w-full">
-          <Button 
+          <Button
             @click="handleEditMode"
             class="w-full"
           >
@@ -294,15 +289,15 @@ const handleCancel = () => {
           </Button>
         </div>
         <div v-else class="flex gap-2 w-full">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             @click="handleCancel"
             class="flex-1"
           >
             Cancel
           </Button>
-          <Button 
-            @click="handleSubmit" 
+          <Button
+            @click="handleSubmit"
             :disabled="!isFormValid || isSubmitting"
             class="flex-1"
           >
