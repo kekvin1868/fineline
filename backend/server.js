@@ -1,7 +1,3 @@
-import User from './models/User.js';
-import Transaction from './models/Transaction.js';
-import Category from './models/Category.js';
-
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
