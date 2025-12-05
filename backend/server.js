@@ -6,7 +6,6 @@ import authRoutes from './routes/authRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import { seedDefaultCategory } from './config/seed/seedCategories.js';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger.js';
